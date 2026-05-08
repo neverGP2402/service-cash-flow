@@ -1,8 +1,5 @@
 import os
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-from flask_jwt_extended import JWTManager
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -14,13 +11,50 @@ from config.logger import init_logger, get_logger
 
 
 def create_app():
+    # Validate PostgreSQL configuration first
+    try:
+        # Check if psycopg2-binary is installed
+        import psycopg2  # noqa: F401
+    except ImportError:
+        print("❌ Import Error: psycopg2-binary is required for PostgreSQL connection")
+        print("💡 Solution: Install with 'pip install psycopg2-binary'")
+        return None
+    
+    # Check if all required environment variables are set
+    required_vars = ['DB_USER', 'DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_PASSWORD']
+    missing_vars = [var for var in required_vars if not os.getenv(var)]
+    
+    if missing_vars:
+        print(f"❌ Configuration Error: Missing required environment variables: {', '.join(missing_vars)}")
+        print("💡 Solution: Check your .env file and ensure all PostgreSQL variables are set")
+        return None
+    
     app = Flask(__name__)
     app.config.from_object(Config)
+    
+    # Set database URI after validation
+    db_user = os.getenv('DB_USER')
+    db_host = os.getenv('DB_HOST')
+    db_port = os.getenv('DB_PORT')
+    db_name = os.getenv('DB_NAME')
+    db_password = os.getenv('DB_PASSWORD')
+    
+    # URL encode password to handle special characters
+    from urllib.parse import quote_plus
+    encoded_password = quote_plus(db_password)
+    
+    app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{db_user}:{encoded_password}@{db_host}:{db_port}/{db_name}"
+    
+    print(f"🚀 Starting {app.config.get('APP_NAME', 'Cash Flow Management')} v{app.config.get('APP_VERSION', '1.0.0')}")
+    print(f"🌍 Environment: {'Development' if app.debug else 'Production'}")
+    print(f"🔐 JWT Access Token Expires: {app.config.get('JWT_ACCESS_TOKEN_EXPIRES')}s")
 
     init_db(app)
     init_jwt(app)
     init_logger(app)
 
+    from flask_migrate import Migrate
+    from config.database import db
     Migrate(app, db)
 
     # Register blueprints
@@ -51,6 +85,26 @@ def create_app():
     from common.exceptions.app_exception import register_error_handlers
     register_error_handlers(app)
 
+    # Test database connection
+    try:
+        with app.app_context():
+            from config.database import db
+            db.create_all()
+            print("✅ Database connected and tables created")
+            print(f"📊 DB URI: {app.config['SQLALCHEMY_DATABASE_URI']}")
+    except ImportError as e:
+        print(f"❌ Import Error: {e}")
+        print("💡 Solution: Install missing dependencies with 'pip install -r requirements.txt'")
+        return None
+    except ValueError as e:
+        print(f"❌ Configuration Error: {e}")
+        print("💡 Solution: Check your .env file and ensure all required environment variables are set")
+        return None
+    except Exception as e:
+        print(f"❌ Database connection failed: {e}")
+        print("💡 Solution: Check your PostgreSQL server status and connection credentials")
+        return None
+
     # Scheduler
     from jobs.scheduler import start_scheduler, shutdown_scheduler
     start_scheduler()
@@ -66,4 +120,8 @@ def create_app():
 app = create_app()
 
 if __name__ == '__main__':
+    if app is None:
+        print("❌ Application failed to start due to configuration errors")
+        print("💡 Please fix the issues above and try again")
+        exit(1)
     app.run(host='0.0.0.0', port=5000)
