@@ -1,0 +1,452 @@
+# Database Diagram for Cash Flow Management System use PostgreSQL
+## Configuration
+    - Database: PostgreSQL
+    - Schema: public
+    - Encoding: UTF-8
+    - IP: 140.245.50.242
+    - Database name: cash_flow_db
+    - Port: 5432
+    - Username: cash_flow_user
+    - Password: Minhduc24022@1
+    - Min pool: 3
+    - Max pool: 10
+    - Connection timeout: 30s
+## Note
+    - Các cột lưu số tiền đều được định dạng theo chuẩn double precision
+    - Không tạo khóa ngoại chỉ sử dụng ở application layer
+    - Hạn chế tính toán trong SQL query, nên tính toán ở application layer
+    - Tên table và column nên viết thường và dùng dấu _ để ngăn cách
+    - Tên table chia theo module + table ví dụ: auth_user, tran_transaction, tran_history, sys_application,...
+    - Bất kể table nào cũng phải có 5 cột: is_deleted, created_at, updated_at, created_by_user_id, updated_by_user_id
+    - Không ràng buộc constant, enum,... tự tính toàn ở application layer
+
+## Overview: Dự án này là hệ thống quản lý tài chính cá nhân, quản lý tài chính cá nhân đa nền tảng (WebApp và Mobile App), cho phép người dùng đăng ký tài khoản, theo dõi dòng tiền thu chi theo thời gian, quản lý ví và tài sản tích lũy như vàng, bạc, ngoại tệ, crypto và các tài sản có giá trị khác. Hệ thống hỗ trợ thống kê, báo cáo tài chính, phân tích tăng giảm tài sản, theo dõi lợi nhuận dựa trên giá mua và giá thị trường hiện tại, đồng thời hỗ trợ mục tiêu tiết kiệm, quản lý ngân sách và phân tích hành vi chi tiêu nhằm giúp người dùng kiểm soát tài chính cá nhân và xây dựng tài sản lâu dài.
+
+## Module gồm có
+    - Đăng nhập, phân quyền, quản lý session (auth)
+    - Quản lý transaction (tran)
+    - Quản lý application (sys)
+    - Quản lý cấu hình (com)
+    - Quản lý báo cáo (rep)
+    - Tài sản của tôi: (ass)
+    ....
+
+
+## Tables
+### Application
+### sys_application: Thông tin ứng dụng
+    - id: BIGINT (Primary Key)
+    - name: VARCHAR(255)
+    - description: VARCHAR(255)
+    - version_mobile: VARCHAR(100)
+    - version_mobile: VARCHAR(100)
+    - author: VARCHAR(255)
+    - process_flag: VARCHAR(20) (dùng để check cờ khi thực hiện tác vụ nặng)
+
+### sys_history: Lịch sử thao tác
+    - id: BIGINT (Primary Key)
+    - user_id: BIGINT
+    - process_id: BIGINT
+    - session_id: BIGINT
+    - description: VARCHAR(255)
+    - method: VARCHAR(10)
+    - api_path: VARCHAR(255)
+    - param: json
+    - status: VARCHAR(10) (enum: SUCCESS, PROCESSING, FAILED)
+    - start_request_time: TIMESTAMP
+    - finish_request_time: TIMESTAMP
+    - message_response: TEXT
+    - is_deleted: BOOLEAN
+    - created_at: TIMESTAMP
+    - created_by_user_id: BIGINT
+    - updated_at: TIMESTAMP
+    - updated_by_user_id: BIGINT
+
+### Authen module
+### auth_users: Quản lý user của hệ thống
+    - id: BIGINT (Primary Key)
+    - username: VARCHAR(100)
+    - password: VARCHAR(255)
+    - full_name: VARCHAR(255)
+    - avatar: VARCHAR(255)
+    - birthday: TIMESTAMP (ngày sinh)
+    - age: INT (tuổi)
+    - register_date: TIMESTAMP (thời gian đăng ký sử dụng app)
+    - gender: VARCHAR(10) (Enum: MALE, FEMALE, OTHER)
+    - province_id: BIGINT
+    - ward_id: BIGINT
+    - address: VARCHAR(255)
+    - email: VARCHAR(255)
+    - status: VARCHAR(50)
+    - role_permission_id: BIGINT
+    - last_login_time: TIMESTAMP
+    - last_request_time: TIMESTAMP
+    - is_deleted: BOOLEAN
+    - created_at: TIMESTAMP
+    - created_by_user_id: BIGINT
+    - updated_at: TIMESTAMP
+    - updated_by_user_id: BIGINT
+
+### auth_sessions: Quản lý session của user
+    - id: BIGINT (Primary Key)
+    - user_id: BIGINT
+    - session_token: VARCHAR(255)
+    - expires_at: TIMESTAMP
+    - refresh_token: VARCHAR(255)
+    - refresh_token_expires_at: TIMESTAMP
+    - refresh_token_used: VARCHAR(255)
+    - last_request_time: TIMESTAMP
+    - device_info: VARCHAR(255)
+    - ip_address: VARCHAR(255)
+    - status: VARCHAR(50)
+    - type: VARCHAR(10) (Enum: SIGNIN, FORGOT)
+    - platform: VARCHAR(50) (Enum: WEB, MOBILE)
+    - is_deleted: BOOLEAN
+    - created_at: TIMESTAMP
+    - created_by_user_id: BIGINT
+    - updated_at: TIMESTAMP
+    - updated_by_user_id: BIGINT
+
+### auth_permission
+    - id: BIGINT (Primary Key)
+    - code: VARCHAR(50)
+    - name: VARCHAR(100)
+    - description: VARCHAR(255)
+    - is_deleted: BOOLEAN
+    - created_at: TIMESTAMP
+    - created_by_user_id: BIGINT
+    - updated_at: TIMESTAMP
+    - updated_by_user_id: BIGINT
+
+### authen_permission_screen
+    - id: BIGINT (Primary Key)
+    - code: VARCHAR(50)
+    - name: VARCHAR(255)
+    - type: VARCHAR(10) (enum: WEB, MOBILE)
+    - navigate: VARCHAR(255)
+    - is_deleted: BOOLEAN
+    - created_at: TIMESTAMP
+    - created_by_user_id: BIGINT
+    - updated_at: TIMESTAMP
+    - updated_by_user_id: BIGINT
+
+### authen_permission_screen_role (cấu hình permission theo role ko theo user id)
+    - id: BIGINT (Primary Key)
+    - permission_screen_id: BIGINT
+    - permission_id: BIGINT
+    - is_deleted: BOOLEAN
+    - created_at: TIMESTAMP
+    - created_by_user_id: BIGINT
+    - updated_at: TIMESTAMP
+    - updated_by_user_id: BIGINT
+
+### Transaction module
+### tran_transactions: Quản lý giao dịch hằng ngày bao gồm thu chi từng khoản (ăn uống, mua sắm, trả nợ, vay nợ, cho vay, lương về,...)
+    - id: BIGINT (Primary Key)
+    - user_id: BIGINT
+    - type: VARCHAR(50) (Enum: INCOME, EXPENSE) -- Loại giao dịch: Thu (INCOME), chi (EXPENSE)
+    - category_id: BIGINT -- danh mục giao dịch (ăn uống, mua sắm, trả nợ, vay nợ, cho vay, lương về,...)
+    - bill_image: VARCHAR(255) -- hình ảnh hóa đơn dạng đường dẫn (nếu có)
+    - amount: DOUBLE PRECISION
+    - date: TIMESTAMP
+    - status: VARCHAR(50) (Enum: PENDING, COMPLETED, FAILED)
+    - formality_transaction: VARCHAR(50) (Enum: CASH, BANK, OTHER) -- hình thức giao dịch: tiền mặt, ngân hàng, khác
+    - wallet_id: BIGINT -- ví giao dịch (nếu có)
+    - origin_transaction_id: BIGINT -- Nguồn tiền (nếu có): Lương đợt 1, lương đợt 2, thưởng, trả nợ, vay nợ,...
+    - description: VARCHAR(255)
+    - reference: VARCHAR(255)
+    - metadata: VARCHAR(255)
+    - is_deleted: BOOLEAN
+    - created_at: TIMESTAMP
+    - created_by_user_id: BIGINT
+    - updated_at: TIMESTAMP
+    - updated_by_user_id: BIGINT
+
+### tran_transactions_detail: Quản lý chi tiết giao dịch (thường cần cho những lần ghi lại chi tiết khi mua hàng)
+    - id: BIGINT (Primary Key)
+    - transaction_id: BIGINT
+    - user_id: BIGINT
+    - product_name: VARCHAR(255)
+    - amount: DOUBLE PRECISION
+    - price: DOUBLE PRECISION
+    - into_money: DOUBLE PRECISION
+    - date: TIMESTAMP
+    - description: VARCHAR(255)
+    - is_deleted: BOOLEAN
+    - created_at: TIMESTAMP
+    - created_by_user_id: BIGINT
+    - updated_at: TIMESTAMP
+    - updated_by_user_id: BIGINT
+
+### tran_notification (thông báo)
+    - id: BIGINT (Primary Key)
+    - user_id: BIGINT
+    - transaction_id: BIGINT
+    - title: VARCHAR(255)
+    - content: VARCHAR(255)
+    - type: VARCHAR (20) (enum: nhắc nhở, cảnh báo, thông báo)
+    - status: VARCHAR (20) (trạng thái dành cho những giao dịch chờ)
+    - sent_at: TIMESTAMP
+    - is_read: BOOLEAN
+    - read_at: TIMESTAMP
+    - priority: VARCHAR(20) (enum: low, medium, high)
+    - is_deleted: BOOLEAN
+    - created_at: TIMESTAMP
+    - created_by_user_id: BIGINT
+    - updated_at: TIMESTAMP
+    - updated_by_user_id: BIGINT
+    
+    
+### tran_accumulated_assets_time_line: tài sản tích lũy (lũy kế) theo loại tài sản và theo thời gian - mỗi lần phát sinh 1 transaction thì phải tính lại được tài sản hiện tại mình còn bao nhiêu.
+    - id: BIGINT (Primary Key)
+    - user_id: BIGINT
+    - transaction_id: BIGINT
+    - asset_id: BIGINT
+    - unit_id: BIGINT
+    - value_remaining: DOUBLE PRECISION (giá trị còn lại)
+    - description: VARCHAR(255)
+    - is_deleted: BOOLEAN
+    - created_at: TIMESTAMP
+    - created_by_user_id: BIGINT
+    - updated_at: TIMESTAMP
+    - updated_by_user_id: BIGINT
+
+### tran_accumulated_assets_by_date: tài sản tích lũy (lũy kế) theo loại tài sản và theo ngày - mỗi lần phát sinh 1 transaction thì phải tính lại được tài sản trong ngày. (tính luôn công nợ)
+    - id: BIGINT (Primary Key)
+    - user_id: BIGINT
+    - asset_id: BIGINT
+    - unit_id: BIGINT
+    - value_remaining: DOUBLE PRECISION (giá trị còn lại)
+    - description: VARCHAR(255)
+    - date: TIMESTAMP
+    - is_deleted: BOOLEAN
+    - created_at: TIMESTAMP
+    - created_by_user_id: BIGINT
+    - updated_at: TIMESTAMP
+    - updated_by_user_id: BIGINT
+    
+### tran_result_by_month: Thống kê giao dịch theo tháng bao gồm thu - chi, tăng - giảm bao nhiêu (quy ra tiền và %) so với tháng trước đó.
+    - unit_id: BIGINT
+    - income: DOUBLE PRECISION (giá trị thu)
+    - expense: DOUBLE PRECISION (giá trị chi)
+    - accumulated_income: DOUBLE PRECISION (tích lũy thu)
+    - accumulated_expense: DOUBLE PRECISION (tích lũy chi)
+    - change_income_month_one_before: DOUBLE PRECISION (thay đổi thu tháng trước - tăng giảm bao nhiêu)
+    - change_expense_month_one_before: DOUBLE PRECISION (thay đổi chi tháng trước - tăng giảm bao nhiêu)
+    - type: VARCHAR(20) (loại: tăng, giảm)
+    - month: INT (tháng)
+    - year: INT (năm)
+    - month_before: INT (tháng trước)
+    - year_before: INT (năm trước)
+    - description: VARCHAR(255)
+    - date: TIMESTAMP
+    - is_deleted: BOOLEAN
+    - created_at: TIMESTAMP
+    - created_by_user_id: BIGINT
+    - updated_at: TIMESTAMP
+    - updated_by_user_id: BIGINT
+
+### my_info_asset: Thông tin tài sản cố định
+    - id: BIGINT (Primary Key)
+    - user_id: BIGINT
+    - asset_id: BIGINT (loại tài sản: vàng, bạc, ví điện tư, ngân hàng,...)
+    - wallet_id: BIGINT 
+    - amount: DOUBLE PRECISION
+    - price: DOUBLE PRECISION (tính theo giá lúc nhập/mua - sau này sẽ tính theo tỉ giá quy đổi hiện tại)
+    - origin: VARCHAR (255) (Nguồn gốc tài sản)
+    - status: VARCHAR(20) (trạng thái: cho mượn, cho vay, cầm cố, đang giữ,...)
+    - description: VARCHAR (255)
+    - unit_id: BIGINT (Đơn vị)
+    - transaction_date: TIMESTAMP
+    - is_deleted: BOOLEAN
+    - created_at: TIMESTAMP
+    - created_by_user_id: BIGINT
+    - updated_at: TIMESTAMP
+    - updated_by_user_id: BIGINT
+    
+### my_target: Mục tiêu tài chính
+    - id: BIGINT (Primary Key)
+    - user_id: BIGINT
+    - name: VARCHAR(255)
+    - income: DOUBLE PRECISION (mục tiêu thu tối thiểu)
+    - expense: DOUBLE PRECISION (mục tiêu chi tối đa)
+    - description: VARCHAR(255)
+    - time_cycle:  DOUBLE PRECISION (thời gian chu kỳ)
+    - type: VARCHAR (20) (enum: ngày, tháng, năm)
+    - progress: DOUBLE PRECISION (tiến độ)
+    - status: VARCHAR (20) (trạng thái đã đạt được, chưa đạt được)
+    - setting_date: TIMESTAMP (Ngày thiết lập)
+    - effective_date: TIMESTAMP (Ngày thiết lập)
+    - is_deleted: BOOLEAN
+    - created_at: TIMESTAMP
+    - created_by_user_id: BIGINT
+    - updated_at: TIMESTAMP
+    - updated_by_user_id: BIGINT
+
+### my_target_plan: Kế hoạch mục tiêu tài chính
+    - id: BIGINT (Primary Key)
+    - user_id: BIGINT
+    - target_id: BIGINT
+    - income: DOUBLE PRECISION 
+    - expense: DOUBLE PRECISION
+    - into_money_actual: DOUBLE PRECISION 
+    - date: TIMESTAMP
+    - status: VARCHAR (20) 
+    - is_deleted: BOOLEAN
+    - created_at: TIMESTAMP
+    - created_by_user_id: BIGINT
+    - updated_at: TIMESTAMP
+    - updated_by_user_id: BIGINT
+
+### my_expense: Thông tin chi tiêu cố định
+    - id: BIGINT (Primary Key)
+    - user_id: BIGINT
+    - expense_id: BIGINT (loại chi tiêu: ăn, mặc, ở, di chuyển, giải trí, học tập, sức khỏe, quà tặng, khác,...)
+    - type: VARCHAR(20) (loại: định kỳ, không định kỳ)
+    - frequency: VARCHAR(20) (tần suất: hàng ngày, hàng tuần, hàng tháng, hàng năm)
+    - amount: DOUBLE PRECISION
+    - price: DOUBLE PRECISION 
+    - into_money: DOUBLE PRECISION
+    - effective_date: TIMESTAMP (ngày hiệu lực chi tiêu)
+    - exp_date: TIMESTAMP (thời hạn hết hiệu lực chi tiêu ví dụ như khoản chi tiêu này hết hiệu lực vào ngày 31/12/2025)
+    - status: VARCHAR(20) (trạng thái: còn hiệu lực, hết hiệu lực)
+    - description: VARCHAR (255)
+    - is_deleted: BOOLEAN
+    - created_at: TIMESTAMP
+    - created_by_user_id: BIGINT
+    - updated_at: TIMESTAMP
+    - updated_by_user_id: BIGINT
+    
+### my_debt: Thông tin khoản vay/nợ, cho vay/mượn
+    - id: BIGINT (Primary Key)
+    - user_id: BIGINT
+    - contract_no: VARCHAR(50) (Số hợp đồng)
+    - contract_date: TIMESTAMP (Ngày ký hợp đồng)
+    - counterparty_id: BIGINT (Đối tác - người mượn/vay)
+    - debt_type: VARCHAR(20) (loại công nợ: nợ người khác hoặc người khác nợ mình)
+    - type: VARCHAR(20) (loại: định kỳ, không định kỳ, trả chậm - ví trả sau)
+    - file_path_json: json (Đường dẫn file hợp đồng / ảnh vay mượn)
+    - frequency: VARCHAR(20) (tần suất: hàng ngày, hàng tuần, hàng tháng, hàng năm)
+    - principal_debt: DOUBLE PRECISION (Nợ gốc)
+    - interest: DOUBLE PRECISION (Lãi suất)
+    - interest_rate: DOUBLE PRECISION (% Lãi suất)
+    - insurance_fee: DOUBLE PRECISION (Phí bảo hiểm)
+    - into_money: DOUBLE PRECISION (Tổng tiền phải trả)
+    - paid_amount: DOUBLE PRECISION (Số tiền đã trả)
+    - remaining_amount: DOUBLE PRECISION (Số tiền còn lại)
+    - cycle: INTEGER (chu kỳ tính lãi suất)
+    - paymented_times: INTEGER (Lần đã thanh toán)
+    - start_date: TIMESTAMP (ngày bắt đầu khoản vay)
+    - exp_date: TIMESTAMP (thời hạn hết hiệu lực ví dụ như khoản vay này hết hiệu lực vào ngày 31/12/2025)
+    - status: VARCHAR(20) (trạng thái: còn hiệu lực, hết hiệu lực)
+    - description: VARCHAR (255)
+    - is_deleted: BOOLEAN
+    - created_at: TIMESTAMP
+    - created_by_user_id: BIGINT
+    - updated_at: TIMESTAMP
+    - updated_by_user_id: BIGINT
+    
+### my_debt_detail: Thông tin chi tiết khoản vay/nợ
+    - id: BIGINT (Primary Key)
+    - my_debt_id: BIGINT
+    - principal_debt: DOUBLE PRECISION (Nợ gốc)
+    - interest: DOUBLE PRECISION (Lãi suất)
+    - insurance_fee: DOUBLE PRECISION (Phí bảo hiểm)
+    - into_money: DOUBLE PRECISION (Tổng tiền)
+    - paid_amount: DOUBLE PRECISION (Số tiền đã trả)
+    - remaining_amount: DOUBLE PRECISION (Số tiền còn lại)
+    - payment_times: INTEGER (Lần thanh toán)
+    - payment_date: TIMESTAMP (Ngày thanh toán)
+    - payment_method: VARCHAR(50) (Phương thức thanh toán: tiền mặt, chuyển khoản, ví điện tử, ...)
+    - transaction_id: BIGINT (Giao dịch thanh toán)
+    - wallet_id: BIGINT (Ví thanh toán)
+    - bill_id: BIGINT (Hóa đơn thanh toán)
+    - status: VARCHAR(20) (Trạng thái: chưa thanh toán, trễ hạn, đã thanh toán)
+    - description: VARCHAR (255)
+    - is_deleted: BOOLEAN
+    - created_at: TIMESTAMP
+    - created_by_user_id: BIGINT
+    - updated_at: TIMESTAMP
+    - updated_by_user_id: BIGINT
+
+### module cấu hình (common)
+### com_wallets: Ví thanh toán, ngân hàng, app tài chính cấu hình theo user
+    - id: BIGINT (Primary Key)
+    - user_id: BIGINT
+    - code: VARCHAR(50)
+    - name: VARCHAR(255)
+    - type: VARCHAR(10) (enum: ví điện tử, ngân hàng,..)
+    - is_deleted: BOOLEAN
+    - created_at: TIMESTAMP
+    - created_by_user_id: BIGINT
+    - updated_at: TIMESTAMP
+    - updated_by_user_id: BIGINT
+
+
+### com_asset: Loại tài sản 
+    - id: BIGINT (Primary Key)
+    - code: VARCHAR(50)
+    - name: VARCHAR(255)
+    - type: VARCHAR(10) (enum: tài sản điện tử hay tài sản thực)
+    - unit_id: BIGINT (Đơn vị tính)
+    - is_deleted: BOOLEAN
+    - created_at: TIMESTAMP
+    - created_by_user_id: BIGINT
+    - updated_at: TIMESTAMP
+    - updated_by_user_id: BIGINT
+
+### com_origin_transaction: nguồn tiền giao dịch (lương, thưởng, trả nợ, vay nợ)
+    - id: BIGINT (Primary Key)
+    - code: VARCHAR(50)
+    - name: VARCHAR(255)
+    - is_deleted: BOOLEAN
+    - created_at: TIMESTAMP
+    - created_by_user_id: BIGINT
+    - updated_at: TIMESTAMP
+    - updated_by_user_id: BIGINT
+
+### com_exchange_rate (tỉ giá hiện tại tính theo VNĐ theo từng loại tài sản - áp dụng chung)
+    - id: BIGINT (Primary Key)
+    - exchange_rate_purchase: DOUBLE PRECISION (tỉ giá mua hiện tại theo vnđ)
+    - exchange_rate_sell: DOUBLE PRECISION (tỉ giá bán hiện tại theo vnđ)
+    - asset_id: BIGINT (loại tài sản: vàng, bạc, ví điện tư, ngân hàng,...)
+    - description: VARCHAR(255)
+    - origin_info: VARCHAR(255) (nguồn thông tin tỉ giá lấy từ đâu)
+    - is_deleted: BOOLEAN
+    - created_at: TIMESTAMP
+    - created_by_user_id: BIGINT
+    - updated_at: TIMESTAMP
+    - updated_by_user_id: BIGINT
+
+### com_unit: Đơn vị tính
+    - id: BIGINT (Primary Key)
+    - code: VARCHAR(50)
+    - name: VARCHAR(255)
+    - is_deleted: BOOLEAN
+    - created_at: TIMESTAMP
+    - created_by_user_id: BIGINT
+    - updated_at: TIMESTAMP
+    - updated_by_user_id: BIGINT
+
+### com_categories: Danh mục giao dịch (ăn uống, mua sắm, trả nợ, vay nợ, cho vay, lương về,...)
+    - id: BIGINT (Primary Key)
+    - code: VARCHAR(50)
+    - name: VARCHAR(255)
+    - type: VARCHAR(10) (enum: thu, chi)
+    - is_deleted: BOOLEAN
+    - created_at: TIMESTAMP
+    - created_by_user_id: BIGINT
+    - updated_at: TIMESTAMP
+    - updated_by_user_id: BIGINT
+
+### com_counterparty: Đối tác (người, tổ chức, doanh nghiệp)
+    - id: BIGINT (Primary Key)
+    - code: VARCHAR(50)
+    - name: VARCHAR(255)
+    - phone: VARCHAR(20)
+    - avatar: VARCHAR(255)
+    - is_deleted: BOOLEAN
+    - created_at: TIMESTAMP
+    - created_by_user_id: BIGINT
+    - updated_at: TIMESTAMP
+    - updated_by_user_id: BIGINT

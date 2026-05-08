@@ -1,0 +1,27 @@
+url API format: /api/v1/{module}/{endpoint}
+resquest format: json
+response format: json
+1. đối với GET method: 
+{
+    "data": {
+        "data": {},
+        "pagination": {
+            "page": 1,
+            "limit": 10,
+            "total": 100,
+            "totalPages": 10
+        }
+    },
+    "message": "success",
+    "status": 200,
+    "timestamp": "2025-10-15T10:00:00Z",
+    "description": "description"
+}
+2. đối với POST method: 
+{
+    "data": {},
+    "message": "success",
+    "status": 201,
+    "timestamp": "2025-10-15T10:00:00Z",
+    "description": "description"
+}

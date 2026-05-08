@@ -1,0 +1,122 @@
+service-cash-flow/
+├── app.py
+├── requirements.txt
+├── .env
+├── README.md
+│
+├── config/
+│   ├── config.py
+│   ├── database.py
+│   ├── jwt.py
+│   └── logger.py
+│
+├── common/
+│   ├── base/
+│   │   ├── base_model.py
+│   │   ├── base_repository.py
+│   │   ├── base_service.py
+│   │   └── base_controller.py
+│   │
+│   ├── exceptions/
+│   │   ├── app_exception.py
+│   │   ├── auth_exception.py
+│   │   └── validate_exception.py
+│   │
+│   ├── middlewares/
+│   │   ├── auth_middleware.py
+│   │   ├── logging_middleware.py
+│   │   └── request_middleware.py
+│   │
+│   ├── responses/
+│   │   ├── success_response.py
+│   │   └── error_response.py
+│   │
+│   ├── utils/
+│   │   ├── date_util.py
+│   │   ├── money_util.py
+│   │   ├── jwt_util.py
+│   │   ├── pagination_util.py
+│   │   └── validate_util.py
+│   │
+│   └── constants/
+│       ├── auth_constant.py
+│       ├── transaction_constant.py
+│       └── system_constant.py
+│
+├── modules/
+│
+│   ├── auth/
+│   │   ├── controllers/
+│   │   ├── services/
+│   │   ├── repositories/
+│   │   ├── models/
+│   │   ├── routes/
+│   │   ├── schemas/
+│   │   └── validators/
+│   │
+│   ├── transaction/
+│   │   ├── controllers/
+│   │   ├── services/
+│   │   ├── repositories/
+│   │   ├── models/
+│   │   ├── routes/
+│   │   ├── schemas/
+│   │   └── validators/
+│   │
+│   ├── debt/
+│   │   ├── controllers/
+│   │   ├── services/
+│   │   ├── repositories/
+│   │   ├── models/
+│   │   ├── routes/
+│   │   ├── schemas/
+│   │   └── validators/
+│   │
+│   ├── asset/
+│   │   ├── controllers/
+│   │   ├── services/
+│   │   ├── repositories/
+│   │   ├── models/
+│   │   ├── routes/
+│   │   ├── schemas/
+│   │   └── validators/
+│   │
+│   ├── report/
+│   │   ├── controllers/
+│   │   ├── services/
+│   │   ├── repositories/
+│   │   ├── routes/
+│   │   └── jobs/
+│   │
+│   ├── common_master/
+│   │   ├── controllers/
+│   │   ├── services/
+│   │   ├── repositories/
+│   │   ├── models/
+│   │   └── routes/
+│   │
+│   └── external/
+│       ├── file_service/
+│       │   ├── services/
+│       │   ├── clients/
+│       │   └── dto/
+│       │
+│       └── exchange_rate/
+│           ├── services/
+│           ├── clients/
+│           └── dto/
+│
+├── jobs/
+│   ├── scheduler.py
+│   ├── monthly_report_job.py
+│   ├── exchange_rate_job.py
+│   └── debt_reminder_job.py
+│
+├── migrations/
+│
+├── tests/
+│   ├── unit/
+│   ├── integration/
+│   └── performance/
+│
+└── logs/
