@@ -53,6 +53,15 @@ def create_app():
     init_jwt(app)
     init_logger(app)
 
+    # Configure CORS
+    from flask_cors import CORS
+    CORS(app, 
+         origins=['http://localhost:3000', 'http://localhost:3039', 'http://172.25.240.50:3039', 'http://127.0.0.1:3000', 'http://127.0.0.1:3039'],
+         methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+         allow_headers=['Content-Type', 'Authorization'],
+         supports_credentials=True,
+         max_age=86400)
+
     from flask_migrate import Migrate
     from config.database import db
     Migrate(app, db)

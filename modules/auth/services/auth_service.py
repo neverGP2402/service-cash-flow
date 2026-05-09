@@ -24,6 +24,14 @@ class AuthService(BaseService):
         email = data.get('email')
         password = data.get('password')
         full_name = data.get('full_name', '')
+        avatar = data.get('avatar', '')
+        birthday = data.get('birthday')
+        age = data.get('age')
+        gender = data.get('gender')
+        address = data.get('address', '')
+        province_id = data.get('province_id')
+        ward_id = data.get('ward_id')
+        role_permission_id = data.get('role_permission_id')
 
         if self.user_repository.find_by_username(username):
             raise InvalidCredentialsException(message='Username already exists')
@@ -36,13 +44,25 @@ class AuthService(BaseService):
             email=email,
             password=hashed,
             full_name=full_name,
+            avatar=avatar,
+            birthday=birthday,
+            age=age,
+            gender=gender,
+            address=address,
+            province_id=province_id,
+            ward_id=ward_id,
+            role_permission_id=role_permission_id,
             status='ACTIVE',
             register_date=datetime.utcnow()
         )
         return self.user_repository.create(user)
 
     def login(self, username: str, password: str, device_info: str = '', ip_address: str = '') -> dict:
+        # Try to find user by username first, then by email
         user = self.user_repository.find_by_username(username)
+        if not user:
+            user = self.user_repository.find_by_email(username)
+        
         if not user:
             raise InvalidCredentialsException(message='Invalid username or password')
 

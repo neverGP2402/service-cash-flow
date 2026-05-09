@@ -10,3 +10,4 @@ class ComAsset(BaseModel):
     name = mapped_column(VARCHAR(255))
     type = mapped_column(VARCHAR(10))
     unit_id = mapped_column(BigInteger)
+    icon = mapped_column(VARCHAR(255))

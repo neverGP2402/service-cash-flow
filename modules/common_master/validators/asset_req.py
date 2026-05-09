@@ -7,3 +7,4 @@ class AssetReq:
         self.name = require_field(data, 'name')
         self.type = data.get('type')
         self.unit_id = data.get('unit_id')
+        self.icon = data.get('icon')

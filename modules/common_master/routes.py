@@ -94,7 +94,16 @@ class CommonMasterController(BaseController):
     def list_assets(self):
         params = self._get_pagination_params()
         items = self.asset_service.get_all(page=params['page'], limit=params['limit'])
-        data = [i.to_dict() for i in items]
+        data = []
+        for item in items:
+            asset_dict = item.to_dict()
+            # Thêm thông tin đơn vị
+            if item.unit_id:
+                unit = self.unit_service.get_by_id(item.unit_id)
+                if unit:
+                    asset_dict['unit_code'] = unit.code
+                    asset_dict['unit_name'] = unit.name
+            data.append(asset_dict)
         return self.ok(data=data)
 
     def create_asset(self):
@@ -108,17 +117,33 @@ class CommonMasterController(BaseController):
             name=data.get('name'),
             type=data.get('type'),
             unit_id=data.get('unit_id'),
+            icon=data.get('icon'),
             created_by_user_id=user_id,
             updated_by_user_id=user_id
         )
         created = self.asset_service.create(entity)
-        return self.created(data=created.to_dict())
+        asset_dict = created.to_dict()
+        # Thêm thông tin đơn vị
+        if created.unit_id:
+            unit = self.unit_service.get_by_id(created.unit_id)
+            if unit:
+                asset_dict['unit_code'] = unit.code
+                asset_dict['unit_name'] = unit.name
+        return self.created(data=asset_dict)
 
     def get_asset(self, asset_id):
         item = self.asset_service.get_by_id(asset_id)
         if not item:
             return self.not_found('Asset not found')
-        return self.ok(data=item.to_dict())
+        
+        asset_dict = item.to_dict()
+        # Thêm thông tin đơn vị
+        if item.unit_id:
+            unit = self.unit_service.get_by_id(item.unit_id)
+            if unit:
+                asset_dict['unit_code'] = unit.code
+                asset_dict['unit_name'] = unit.name
+        return self.ok(data=asset_dict)
 
     def update_asset(self, asset_id):
         data = request.get_json(force=True)
@@ -133,7 +158,14 @@ class CommonMasterController(BaseController):
                 setattr(entity, key, value)
         entity.updated_by_user_id = get_current_user_id()
         updated = self.asset_service.update(entity)
-        return self.ok(data=updated.to_dict())
+        asset_dict = updated.to_dict()
+        # Thêm thông tin đơn vị
+        if updated.unit_id:
+            unit = self.unit_service.get_by_id(updated.unit_id)
+            if unit:
+                asset_dict['unit_code'] = unit.code
+                asset_dict['unit_name'] = unit.name
+        return self.ok(data=asset_dict)
 
     def delete_asset(self, asset_id):
         user_id = get_current_user_id()
