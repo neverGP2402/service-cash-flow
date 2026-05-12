@@ -127,3 +127,24 @@ Accept-Language: en,vi;q=0.9,en-US;q=0.8,fr-FR;q=0.7,fr;q=0.6
 
 2026-05-09 15:57:46,922 [INFO] production.ip_detector - No IP from headers, trying remote_addr...
 2026-05-09 15:57:46,922 [INFO] production.ip_detector - IP detected from remote_addr: 127.0.0.1
+2026-05-11 07:21:58,532 [INFO] production.ip_detector - Starting IP detection...
+2026-05-11 07:21:58,534 [INFO] production.ip_detector - request.headers: Host: localhost:5000
+Connection: keep-alive
+Content-Length: 246
+Sec-Ch-Ua-Platform: "Windows"
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36
+Sec-Ch-Ua: "Google Chrome";v="147", "Not.A/Brand";v="8", "Chromium";v="147"
+Content-Type: application/json
+Sec-Ch-Ua-Mobile: ?0
+Accept: */*
+Origin: http://172.25.240.50:3039
+Sec-Fetch-Site: cross-site
+Sec-Fetch-Mode: cors
+Sec-Fetch-Dest: empty
+Referer: http://172.25.240.50:3039/
+Accept-Encoding: gzip, deflate, br, zstd
+Accept-Language: en,vi;q=0.9,en-US;q=0.8,fr-FR;q=0.7,fr;q=0.6
+
+
+2026-05-11 07:21:58,537 [INFO] production.ip_detector - No IP from headers, trying remote_addr...
+2026-05-11 07:21:58,538 [INFO] production.ip_detector - IP detected from remote_addr: 127.0.0.1
